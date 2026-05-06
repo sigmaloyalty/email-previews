@@ -600,13 +600,19 @@
 
       // Configure PDF options based on current viewport
       const pdfWidth = currentView === 'mobile' ? 375 : 700;
+      const marginTop = 8;
+      const marginBottom = 8;
+
+      // Measure actual content height so the PDF is one continuous page
+      const contentHeight = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight, 600);
+      const pageHeight = contentHeight + marginTop + marginBottom;
 
       const opt = {
-        margin:       [8, 0, 8, 0],
+        margin:       [marginTop, 0, marginBottom, 0],
         filename:     filename,
         image:        { type: 'jpeg', quality: 0.95 },
-        html2canvas:  { scale: 2, width: pdfWidth, scrollY: 0, useCORS: true },
-        jsPDF:        { unit: 'px', format: [pdfWidth, pdfWidth * 1.414], hotfixes: ['px_scaling'] }
+        html2canvas:  { scale: 2, width: pdfWidth, height: contentHeight, scrollY: 0, useCORS: true, windowHeight: contentHeight },
+        jsPDF:        { unit: 'px', format: [pdfWidth, pageHeight], hotfixes: ['px_scaling'] }
       };
 
       html2pdf().set(opt).from(content).save().then(() => {
