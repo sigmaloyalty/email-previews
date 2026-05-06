@@ -299,7 +299,42 @@
     .preview-area { padding: 16px 8px; }
     .preview-frame-wrapper.desktop { width: 100%; }
   }
+  /* ── Download button ── */
+  .btn-download {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .btn-download:hover {
+    background: var(--bg);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-download:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-download svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -325,6 +360,11 @@
         <span class="label-text">Mobile</span>
       </button>
     </div>
+    <!-- Download PDF -->
+    <button class="btn-download" id="downloadBtn" title="Download as PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span class="label-text">PDF</span>
+    </button>
   </div>
 </div>
 
@@ -385,6 +425,7 @@
   const dimensionBadge= document.getElementById('dimensionBadge');
   const langToggle    = document.getElementById('langToggle');
   const viewToggle    = document.getElementById('viewToggle');
+  const downloadBtn   = document.getElementById('downloadBtn');
 
   // ── Read campaign from URL ──
   const params = new URLSearchParams(window.location.search);
@@ -457,6 +498,8 @@
       updateToggleUI();
       updateViewport();
     });
+
+    downloadBtn.addEventListener('click', downloadPDF);
   }
 
   function updateToggleUI() {
@@ -537,6 +580,47 @@
 
     // Re-measure after transition
     setTimeout(() => resizeIframe(), 400);
+  }
+
+  function downloadPDF() {
+    try {
+      const doc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+      const content = doc.body;
+      if (!content) return;
+
+      // Disable button during generation
+      downloadBtn.disabled = true;
+      const origLabel = downloadBtn.querySelector('.label-text');
+      const origText = origLabel ? origLabel.textContent : '';
+      if (origLabel) origLabel.textContent = 'Generating…';
+
+      // Build a filename from campaign name + language
+      const name = (config.name || campaignSlug).replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
+      const filename = `${name}-${currentLang}.pdf`;
+
+      // Configure PDF options based on current viewport
+      const pdfWidth = currentView === 'mobile' ? 375 : 700;
+
+      const opt = {
+        margin:       [8, 0, 8, 0],
+        filename:     filename,
+        image:        { type: 'jpeg', quality: 0.95 },
+        html2canvas:  { scale: 2, width: pdfWidth, scrollY: 0, useCORS: true },
+        jsPDF:        { unit: 'px', format: [pdfWidth, pdfWidth * 1.414], hotfixes: ['px_scaling'] }
+      };
+
+      html2pdf().set(opt).from(content).save().then(() => {
+        downloadBtn.disabled = false;
+        if (origLabel) origLabel.textContent = origText;
+      }).catch(() => {
+        downloadBtn.disabled = false;
+        if (origLabel) origLabel.textContent = origText;
+      });
+
+    } catch(e) {
+      downloadBtn.disabled = false;
+      alert('Could not generate PDF. The email content may not be accessible.');
+    }
   }
 
   function showError(title, message, codeBlock) {
