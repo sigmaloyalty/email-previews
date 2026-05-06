@@ -1,13 +1,13 @@
 {
-  "name": "Data Privacy Week – January 2025",
+  "name": "Care For My Home Cancellations",
   "en": {
-    "file": "en.html",
-    "subject": "You may be sharing more than you think 🔓",
-    "preheader": "A privacy audit reveals what you're sharing – and how to stop it"
+    "file": "CFMH_cancellation.html",
+    "subject": "Your Care For My Home 360 subscription has been cancelled",
+    "preheader": "We're sorry to see you go."
   },
   "fr": {
-    "file": "fr.html",
-    "subject": "Vous partagez peut-être plus que vous ne le pensez 🔓",
-    "preheader": "Un audit de confidentialité révèle ce que vous partagez – et comment y mettre fin"
+    "file": "CFMH_cancellation_fr.html",
+    "subject": "Votre abonnement à Vigie Domicile 360 a été résilié",
+    "preheader": "Nous sommes désolés de vous voir partir."
   }
 }
