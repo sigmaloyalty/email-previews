@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --border: #e0e2e7;
+    --text-primary: #1a1d23;
+    --text-secondary: #6b7080;
+    --text-muted: #9ca3b0;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-light: #eff4ff;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+    --mobile-width: 375px;
+    --desktop-width: 700px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .campaign-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .toolbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Toggle group (segmented control) ── */
+  .toggle-group {
+    display: inline-flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .toggle-group button {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .toggle-group button:hover {
+    color: var(--text-primary);
+  }
+
+  .toggle-group button.active {
+    background: var(--surface);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .toggle-group button svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  /* ── Meta strip (subject + preheader) ── */
+  .meta-strip {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .meta-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .meta-value {
+    font-size: 14px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .meta-value.preheader {
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  .meta-separator {
+    width: 1px;
+    height: 16px;
+    background: var(--border);
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  /* ── Preview area ── */
+  .preview-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 32px 24px;
+  }
+
+  .preview-frame-wrapper {
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+
+  .preview-frame-wrapper.desktop {
+    width: var(--desktop-width);
+  }
+
+  .preview-frame-wrapper.mobile {
+    width: var(--mobile-width);
+  }
+
+  .preview-chrome {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  /* Mobile chrome bar */
+  .mobile-chrome-bar {
+    display: none;
+    height: 28px;
+    background: #f9fafb;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 12px;
+  }
+
+  .preview-frame-wrapper.mobile .mobile-chrome-bar {
+    display: flex;
+  }
+
+  .mobile-chrome-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .mobile-chrome-bar .mobile-chrome-notch {
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+  }
+
+  .preview-iframe {
+    width: 100%;
+    border: none;
+    display: block;
+    background: #ffffff;
+    min-height: 600px;
+  }
+
+  /* ── Dimension badge ── */
+  .dimension-badge {
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Loading / Error states ── */
+  .state-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .state-message h2 {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .state-message p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 440px;
+    line-height: 1.6;
+  }
+
+  .state-message code {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    display: block;
+    margin-top: 8px;
+    text-align: left;
+    white-space: pre;
+    line-height: 1.5;
+  }
+
+  .spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .toolbar { padding: 0 16px; gap: 8px; }
+    .campaign-name { font-size: 13px; }
+    .toggle-group button { padding: 5px 10px; font-size: 12px; }
+    .toggle-group button span.label-text { display: none; }
+    .meta-strip { padding: 10px 16px; gap: 12px; }
+    .preview-area { padding: 16px 8px; }
+    .preview-frame-wrapper.desktop { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Toolbar -->
+<div class="toolbar" id="toolbar" style="display:none;">
+  <div class="toolbar-left">
+    <div class="campaign-name" id="campaignName"></div>
+  </div>
+  <div class="toolbar-controls">
+    <!-- Language toggle -->
+    <div class="toggle-group" id="langToggle">
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="fr">FR</button>
+    </div>
+    <!-- Viewport toggle -->
+    <div class="toggle-group" id="viewToggle">
+      <button data-view="desktop" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span class="label-text">Desktop</span>
+      </button>
+      <button data-view="mobile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+        <span class="label-text">Mobile</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Meta strip -->
+<div class="meta-strip" id="metaStrip" style="display:none;">
+  <div class="meta-item">
+    <span class="meta-label">Subject</span>
+    <span class="meta-value" id="subjectLine"></span>
+  </div>
+  <div class="meta-separator"></div>
+  <div class="meta-item">
+    <span class="meta-label">Pre-header</span>
+    <span class="meta-value preheader" id="preheaderText"></span>
+  </div>
+</div>
+
+<!-- Preview area -->
+<div class="preview-area" id="previewArea">
+  <!-- Loading state shown initially -->
+  <div class="state-message" id="loadingState">
+    <div class="spinner"></div>
+    <p>Loading preview…</p>
+  </div>
+
+  <!-- Error state (hidden) -->
+  <div class="state-message" id="errorState" style="display:none;"></div>
+
+  <!-- Preview frame (hidden until loaded) -->
+  <div class="preview-frame-wrapper desktop" id="previewWrapper" style="display:none;">
+    <div class="preview-chrome">
+      <div class="mobile-chrome-bar">
+        <span class="mobile-chrome-notch"></span>
+      </div>
+      <iframe class="preview-iframe" id="previewIframe" sandbox="allow-same-origin" title="Email preview"></iframe>
+    </div>
+    <div class="dimension-badge" id="dimensionBadge"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // ── State ──
+  let config = null;
+  let currentLang = 'en';
+  let currentView = 'desktop';
+
+  // ── Elements ──
+  const toolbar       = document.getElementById('toolbar');
+  const metaStrip     = document.getElementById('metaStrip');
+  const campaignName  = document.getElementById('campaignName');
+  const subjectLine   = document.getElementById('subjectLine');
+  const preheaderText = document.getElementById('preheaderText');
+  const previewArea   = document.getElementById('previewArea');
+  const loadingState  = document.getElementById('loadingState');
+  const errorState    = document.getElementById('errorState');
+  const previewWrapper= document.getElementById('previewWrapper');
+  const previewIframe = document.getElementById('previewIframe');
+  const dimensionBadge= document.getElementById('dimensionBadge');
+  const langToggle    = document.getElementById('langToggle');
+  const viewToggle    = document.getElementById('viewToggle');
+
+  // ── Read campaign from URL ──
+  const params = new URLSearchParams(window.location.search);
+  const campaignSlug = params.get('campaign');
+
+  if (!campaignSlug) {
+    showError(
+      'No campaign specified',
+      'Add a <strong>?campaign=</strong> parameter to the URL pointing to your campaign folder.',
+      `Example:\n${window.location.origin}${window.location.pathname}?campaign=privacy-week`
+    );
+    return;
+  }
+
+  // ── Load config ──
+  const basePath = `emails/${campaignSlug}`;
+
+  fetch(`${basePath}/config.json`)
+    .then(r => {
+      if (!r.ok) throw new Error(`Could not find config at ${basePath}/config.json`);
+      return r.json();
+    })
+    .then(data => {
+      config = data;
+      document.title = `${config.name || campaignSlug} — Email Preview`;
+      init();
+    })
+    .catch(err => {
+      showError(
+        'Campaign not found',
+        `Could not load <strong>${basePath}/config.json</strong>. Make sure the campaign folder exists with a valid config file.`,
+        `Expected structure:\nemails/\n  ${campaignSlug}/\n    config.json\n    en.html\n    fr.html`
+      );
+    });
+
+  function init() {
+    // Show UI
+    toolbar.style.display = 'flex';
+    metaStrip.style.display = 'flex';
+    campaignName.textContent = config.name || campaignSlug;
+
+    // Check which languages are available
+    const langs = [];
+    if (config.en) langs.push('en');
+    if (config.fr) langs.push('fr');
+
+    // Hide lang toggle if only one language
+    if (langs.length <= 1) {
+      langToggle.style.display = 'none';
+    }
+
+    // Default to first available language
+    currentLang = langs[0] || 'en';
+    updateToggleUI();
+    loadEmail();
+
+    // ── Event listeners ──
+    langToggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-lang]');
+      if (!btn || btn.classList.contains('active')) return;
+      currentLang = btn.dataset.lang;
+      updateToggleUI();
+      loadEmail();
+    });
+
+    viewToggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-view]');
+      if (!btn || btn.classList.contains('active')) return;
+      currentView = btn.dataset.view;
+      updateToggleUI();
+      updateViewport();
+    });
+  }
+
+  function updateToggleUI() {
+    langToggle.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === currentLang);
+    });
+    viewToggle.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.view === currentView);
+    });
+  }
+
+  function loadEmail() {
+    const langData = config[currentLang];
+    if (!langData) {
+      showError('Language not available', `No <strong>${currentLang.toUpperCase()}</strong> version configured for this campaign.`);
+      return;
+    }
+
+    // Update meta
+    subjectLine.textContent = langData.subject || '(no subject)';
+    preheaderText.textContent = langData.preheader || '(no pre-header)';
+
+    // Resolve the email file path
+    const filePath = langData.file || `${currentLang}.html`;
+    const fullPath = filePath.startsWith('http') ? filePath : `${basePath}/${filePath}`;
+
+    // Show loading
+    loadingState.style.display = 'flex';
+    errorState.style.display = 'none';
+    previewWrapper.style.display = 'none';
+
+    fetch(fullPath)
+      .then(r => {
+        if (!r.ok) throw new Error(`Could not load ${fullPath}`);
+        return r.text();
+      })
+      .then(html => {
+        loadingState.style.display = 'none';
+        previewWrapper.style.display = 'block';
+
+        // Write HTML into iframe
+        const doc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+        doc.open();
+        doc.write(html);
+        doc.close();
+
+        // Auto-resize iframe height after content loads
+        setTimeout(() => resizeIframe(), 200);
+        setTimeout(() => resizeIframe(), 800);
+
+        updateViewport();
+      })
+      .catch(err => {
+        showError('Email file not found', `Could not load <strong>${fullPath}</strong>. Check that the file exists in your campaign folder.`);
+      });
+  }
+
+  function resizeIframe() {
+    try {
+      const doc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+      const height = Math.max(
+        doc.body.scrollHeight,
+        doc.documentElement.scrollHeight,
+        600
+      );
+      previewIframe.style.height = height + 'px';
+    } catch(e) {
+      previewIframe.style.height = '800px';
+    }
+  }
+
+  function updateViewport() {
+    previewWrapper.classList.remove('desktop', 'mobile');
+    previewWrapper.classList.add(currentView);
+
+    const width = currentView === 'mobile' ? 375 : 700;
+    dimensionBadge.textContent = `${width}px wide`;
+
+    // Re-measure after transition
+    setTimeout(() => resizeIframe(), 400);
+  }
+
+  function showError(title, message, codeBlock) {
+    loadingState.style.display = 'none';
+    previewWrapper.style.display = 'none';
+    toolbar.style.display = 'none';
+    metaStrip.style.display = 'none';
+    errorState.style.display = 'flex';
+    errorState.innerHTML = `
+      <h2>${title}</h2>
+      <p>${message}</p>
+      ${codeBlock ? `<code>${codeBlock}</code>` : ''}
+    `;
+  }
+})();
+</script>
+
+</body>
+</html>
