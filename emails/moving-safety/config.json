@@ -1,0 +1,13 @@
+{
+  "name": "Moving Safety Jul.26",
+  "en": {
+    "file": "NB_moving_en.html",
+    "subject": "Someone Just Changed Your Address. Was It You? 📬",
+    "preheader": "Peak moving season is also prime season for identity thieves"
+  },
+  "fr": {
+    "file": "NB_moving_fr.html",
+    "subject": "Quelqu’un vient de changer votre adresse. Est-ce vous ? 📬",
+    "preheader": "La haute saison du déménagement est aussi la période de prédilection pour les voleurs d'identité"
+  }
+}
