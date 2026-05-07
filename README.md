@@ -50,7 +50,7 @@ If you only have one language, just include that key. The language toggle hides 
 Send your colleagues a direct link:
 
 ```
-https://your-username.github.io/repo-name/viewer.html?campaign=your-campaign-slug
+https://sigmaloyalty.github.io/email-previews/viewer.html?campaign=your-campaign-slug
 ```
 
 They'll land directly on that campaign — no menus, no other campaigns visible.
