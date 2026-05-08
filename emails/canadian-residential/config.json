@@ -9,5 +9,9 @@
     "file": "nb_canadian_residential_fr.html",
     "subject": "Alerte fuite de données",
     "preheader": "Fuite de données des consommateurs résidentiels canadiens"
+  },
+    "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": "69fe3a87c0954111d8f737d9"
   }
 }
