@@ -697,6 +697,163 @@
     line-height: 1.55;
   }
 
+  /* Comment action bar */
+  .comment-actions {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  .reply-toggle-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.15s;
+  }
+
+  .reply-toggle-btn svg { width: 12px; height: 12px; }
+  .reply-toggle-btn:hover { color: var(--accent); }
+
+  /* Reply thread (existing replies) */
+  .reply-thread {
+    margin-top: 10px;
+    border-left: 2px solid var(--border);
+    margin-left: 4px;
+    padding-left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .reply-item {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .reply-item:last-child { border-bottom: none; padding-bottom: 2px; }
+
+  .reply-item-top {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 5px;
+  }
+
+  .reply-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #6b7280;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .reply-meta { display: flex; align-items: baseline; gap: 6px; flex: 1; min-width: 0; }
+
+  .reply-author {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .reply-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+  .reply-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* Reply compose */
+  .reply-compose {
+    margin-top: 10px;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .reply-textarea {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    outline: none;
+    resize: none;
+    min-height: 58px;
+    line-height: 1.5;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .reply-textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.1);
+  }
+
+  .reply-compose-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 7px;
+  }
+
+  .reply-reviewing-as {
+    flex: 1;
+    font-size: 11px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .reply-reviewing-as strong { color: var(--text-secondary); font-weight: 600; }
+
+  .reply-cancel-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .reply-cancel-btn:hover { background: var(--surface); color: var(--text-primary); }
+
+  .reply-send-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 13px;
+    border: none;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .reply-send-btn:hover { background: var(--accent-hover); }
+
   /* Panel footer */
   .panel-footer {
     padding: 10px 16px;
@@ -1243,6 +1400,56 @@
     reviewerEditBtn.addEventListener('click', promptReviewerName);
     refreshBtn.addEventListener('click',     handleRefresh);
 
+    // ── Reply button delegation (single listener covers all cards) ──
+    panelBody.addEventListener('click', e => {
+      // Toggle reply compose open/closed
+      const toggleBtn = e.target.closest('.reply-toggle-btn');
+      if (toggleBtn) {
+        e.stopPropagation();
+        const card    = toggleBtn.closest('.comment-card');
+        const compose = card && card.querySelector('.reply-compose');
+        if (!compose) return;
+        const opening = compose.style.display === 'none';
+        compose.style.display = opening ? 'block' : 'none';
+        if (opening) {
+          const ta = compose.querySelector('.reply-textarea');
+          if (ta) { ta.value = ''; ta.focus(); }
+        }
+        return;
+      }
+
+      // Cancel reply
+      const cancelBtn = e.target.closest('.reply-cancel-btn');
+      if (cancelBtn) {
+        e.stopPropagation();
+        const compose = cancelBtn.closest('.reply-compose');
+        if (compose) compose.style.display = 'none';
+        return;
+      }
+
+      // Send reply
+      const sendBtn = e.target.closest('.reply-send-btn');
+      if (sendBtn) {
+        e.stopPropagation();
+        const cid     = sendBtn.dataset.cid;
+        const compose = sendBtn.closest('.reply-compose');
+        const ta      = compose && compose.querySelector('.reply-textarea');
+        const text    = ta && ta.value.trim();
+        if (!text) { if (ta) ta.focus(); return; }
+
+        // Use saved name, or prompt once
+        let name = reviewerName;
+        if (!name) {
+          name = prompt('Enter your name to post the reply:');
+          if (!name || !name.trim()) return;
+          setReviewerName(name.trim());
+        }
+
+        addReply(cid, text, name);
+        return;
+      }
+    });
+
     // ── Bubble & modal listeners ──
     bubbleBtn.addEventListener('click', () => { hideSelBubble(); openModal(); });
     modalX.addEventListener('click',      closeModal);
@@ -1351,12 +1558,14 @@
       if (lbl) lbl.textContent = 'Generating…';
       const slug = (config.name || campaignSlug).replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
       const pw   = currentView === 'mobile' ? 375 : 700;
+      // Use the full content height so the PDF renders as one long unbroken page
+      const ph   = doc.body.scrollHeight + 16; // +16 covers top + bottom margins
       html2pdf().set({
         margin:      [8, 0, 8, 0],
         filename:    `${slug}-${currentLang}.pdf`,
         image:       { type: 'jpeg', quality: 0.95 },
         html2canvas: { scale: 2, width: pw, scrollY: 0, useCORS: true },
-        jsPDF:       { unit: 'px', format: [pw, pw * 1.414], hotfixes: ['px_scaling'] }
+        jsPDF:       { unit: 'px', format: [pw, ph], hotfixes: ['px_scaling'] }
       }).from(doc.body).save().finally(() => {
         downloadBtn.disabled = false;
         if (lbl) lbl.textContent = 'PDF';
@@ -1476,6 +1685,21 @@
     applyHighlights();
     renderPanel();
     updateBadge();
+  }
+
+  function addReply(commentId, replyText, author) {
+    const comment = (comments[currentLang] || []).find(c => c.id === commentId);
+    if (!comment) return;
+    if (!comment.replies) comment.replies = [];
+    comment.replies.push({
+      id:        rand(),
+      author:    author.trim(),
+      initials:  initials(author),
+      text:      replyText.trim(),
+      timestamp: new Date().toISOString()
+    });
+    saveComments();
+    renderPanel();
   }
 
   // ─────────────────────────────────────
@@ -1602,6 +1826,26 @@
         ? `<div class="comment-quote" style="background:${c.color}14;border-left:3px solid ${c.color}">${esc(c.selectedText)}</div>`
         : '';
 
+      // Existing replies
+      const repliesHtml = (c.replies || []).map(r => `
+        <div class="reply-item">
+          <div class="reply-item-top">
+            <div class="reply-avatar">${esc(r.initials)}</div>
+            <div class="reply-meta">
+              <span class="reply-author">${esc(r.author)}</span>
+              <span class="reply-time">${timeAgo(r.timestamp)}</span>
+            </div>
+          </div>
+          <div class="reply-text">${esc(r.text)}</div>
+        </div>`).join('');
+
+      const replyThreadHtml = repliesHtml
+        ? `<div class="reply-thread">${repliesHtml}</div>` : '';
+
+      const reviewingAs = reviewerName
+        ? `As <strong>${esc(reviewerName)}</strong>`
+        : 'Set your name above first';
+
       card.innerHTML = `
         <div class="comment-card-top">
           <div class="comment-avatar" style="background:${c.color}">${esc(c.initials)}</div>
@@ -1614,7 +1858,22 @@
           </button>
         </div>
         ${quoteHtml}
-        <div class="comment-text">${esc(c.text)}</div>`;
+        <div class="comment-text">${esc(c.text)}</div>
+        ${replyThreadHtml}
+        <div class="comment-actions">
+          <button class="reply-toggle-btn" data-cid="${c.id}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+            Reply
+          </button>
+        </div>
+        <div class="reply-compose" style="display:none;">
+          <textarea class="reply-textarea" placeholder="Your reply…" maxlength="500" rows="2"></textarea>
+          <div class="reply-compose-row">
+            <span class="reply-reviewing-as">${reviewingAs}</span>
+            <button class="reply-cancel-btn">Cancel</button>
+            <button class="reply-send-btn" data-cid="${c.id}">Send</button>
+          </div>
+        </div>`;
 
       // Resolve button
       card.querySelector('.comment-resolve-btn').addEventListener('click', e => {
@@ -1622,9 +1881,12 @@
         if (confirm(`Resolve this comment from ${c.author}?`)) resolveComment(c.id);
       });
 
-      // Click card → scroll to highlight in email
+      // Click card body → scroll to highlight in email
       if (c.selectedText) {
-        card.addEventListener('click', () => scrollToMark(c.id));
+        card.addEventListener('click', e => {
+          if (e.target.closest('.comment-resolve-btn, .reply-toggle-btn, .reply-compose')) return;
+          scrollToMark(c.id);
+        });
       }
 
       panelBody.appendChild(card);
