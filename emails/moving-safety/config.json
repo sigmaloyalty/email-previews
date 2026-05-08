@@ -9,5 +9,9 @@
     "file": "NB_moving_fr.html",
     "subject": "Quelqu’un vient de changer votre adresse. Est-ce vous ? 📬",
     "preheader": "La haute saison du déménagement est aussi la période de prédilection pour les voleurs d'identité"
+  },
+  "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
   }
 }
