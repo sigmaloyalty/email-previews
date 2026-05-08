@@ -1559,7 +1559,7 @@
       const slug = (config.name || campaignSlug).replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
       const pw   = currentView === 'mobile' ? 375 : 700;
       // Use the full content height so the PDF renders as one long unbroken page
-      const ph   = doc.body.scrollHeight + 16; // +16 covers top + bottom margins
+      const ph   = doc.body.scrollHeight + 60; // extra buffer prevents rounding/scale overflow
       html2pdf().set({
         margin:      [8, 0, 8, 0],
         filename:    `${slug}-${currentLang}.pdf`,
