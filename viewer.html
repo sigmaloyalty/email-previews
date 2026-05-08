@@ -25,6 +25,7 @@
     --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
     --mobile-width: 375px;
     --desktop-width: 700px;
+    --panel-width: 320px;
   }
 
   body {
@@ -100,9 +101,7 @@
     white-space: nowrap;
   }
 
-  .toggle-group button:hover {
-    color: var(--text-primary);
-  }
+  .toggle-group button:hover { color: var(--text-primary); }
 
   .toggle-group button.active {
     background: var(--surface);
@@ -170,6 +169,11 @@
     display: flex;
     justify-content: center;
     padding: 32px 24px;
+    transition: padding-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  body.panel-open .preview-area {
+    padding-right: calc(var(--panel-width) + 24px);
   }
 
   .preview-frame-wrapper {
@@ -177,13 +181,8 @@
     position: relative;
   }
 
-  .preview-frame-wrapper.desktop {
-    width: var(--desktop-width);
-  }
-
-  .preview-frame-wrapper.mobile {
-    width: var(--mobile-width);
-  }
+  .preview-frame-wrapper.desktop { width: var(--desktop-width); }
+  .preview-frame-wrapper.mobile  { width: var(--mobile-width); }
 
   .preview-chrome {
     background: var(--surface);
@@ -205,16 +204,7 @@
     padding: 0 12px;
   }
 
-  .preview-frame-wrapper.mobile .mobile-chrome-bar {
-    display: flex;
-  }
-
-  .mobile-chrome-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--border);
-  }
+  .preview-frame-wrapper.mobile .mobile-chrome-bar { display: flex; }
 
   .mobile-chrome-bar .mobile-chrome-notch {
     width: 40px;
@@ -229,6 +219,26 @@
     display: block;
     background: #ffffff;
     min-height: 600px;
+  }
+
+  /* Annotate mode hint */
+  body.annotate-mode .preview-frame-wrapper::before {
+    content: '✏  Select text to annotate';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(37, 99, 235, 0.92);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: 20px;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 10;
+    font-family: 'DM Sans', sans-serif;
+    animation: fadeIn 0.2s ease;
   }
 
   /* ── Dimension badge ── */
@@ -252,10 +262,7 @@
     gap: 12px;
   }
 
-  .state-message h2 {
-    font-size: 18px;
-    font-weight: 600;
-  }
+  .state-message h2 { font-size: 18px; font-weight: 600; }
 
   .state-message p {
     font-size: 14px;
@@ -287,7 +294,11 @@
     animation: spin 0.7s linear infinite;
   }
 
-  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes spin    { to { transform: rotate(360deg); } }
+  @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse   { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
   /* ── Responsive ── */
   @media (max-width: 768px) {
@@ -298,8 +309,10 @@
     .meta-strip { padding: 10px 16px; gap: 12px; }
     .preview-area { padding: 16px 8px; }
     .preview-frame-wrapper.desktop { width: 100%; }
+    body.panel-open .preview-area { padding-right: 8px; }
   }
-  /* ── Download button ── */
+
+  /* ── Download / toolbar buttons ── */
   .btn-download {
     font-family: 'DM Sans', sans-serif;
     font-size: 13px;
@@ -323,24 +336,623 @@
     color: var(--accent);
   }
 
-  .btn-download:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .btn-download:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-download svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* Comments toolbar button – shares same base as btn-download */
+  .btn-comments {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    position: relative;
   }
 
-  .btn-download svg {
-    width: 16px;
-    height: 16px;
+  .btn-comments:hover {
+    background: var(--bg);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-comments.panel-open {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-comments svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* Comment count badge on toolbar button */
+  .comment-badge {
+    display: none;
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 17px;
+    height: 17px;
+    border-radius: 9px;
+    padding: 0 4px;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    border: 2px solid var(--surface);
+  }
+
+  .comment-badge.show { display: flex; }
+
+  /* ═══════════════════════════════════════
+     COMMENT SYSTEM
+  ═══════════════════════════════════════ */
+
+  /* ── Comment panel (fixed right sidebar) ── */
+  .comment-panel {
+    position: fixed;
+    top: 60px;
+    right: 0;
+    bottom: 0;
+    width: var(--panel-width);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 95;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.07);
+  }
+
+  .comment-panel.open { transform: translateX(0); }
+
+  /* Panel header */
+  .panel-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     flex-shrink: 0;
   }
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title svg { width: 15px; height: 15px; color: var(--text-secondary); }
+
+  .panel-count {
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+
+  .panel-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .panel-close:hover { background: var(--bg); color: var(--text-primary); }
+  .panel-close svg { width: 16px; height: 16px; }
+
+  /* Reviewer identity bar */
+  .reviewer-bar {
+    padding: 9px 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .reviewer-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .reviewer-name-val {
+    font-size: 13px;
+    color: var(--text-primary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .reviewer-name-val.empty { color: var(--text-muted); font-style: italic; }
+
+  .reviewer-edit-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .reviewer-edit-btn:hover { background: var(--accent-light); }
+
+  /* Annotate toggle button */
+  .annotate-btn {
+    margin: 12px 16px 0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex-shrink: 0;
+  }
+
+  .annotate-btn svg { width: 14px; height: 14px; }
+
+  .annotate-btn:hover {
+    border-style: solid;
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .annotate-btn.active {
+    border-style: solid;
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  /* Panel body – scrollable comment list */
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0 0;
+  }
+
+  .panel-body::-webkit-scrollbar { width: 4px; }
+  .panel-body::-webkit-scrollbar-track { background: transparent; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .comments-empty {
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .comments-empty .ei { font-size: 26px; display: block; margin-bottom: 8px; }
+
+  /* Setup / error notices */
+  .panel-notice {
+    margin: 16px;
+    padding: 13px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.65;
+  }
+
+  .panel-notice.setup {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    color: #78350f;
+  }
+
+  .panel-notice.error {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    color: #7f1d1d;
+  }
+
+  .panel-notice strong { display: block; font-weight: 600; margin-bottom: 5px; }
+
+  .panel-notice .bin-id-box {
+    display: block;
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: rgba(0,0,0,0.07);
+    border-radius: 5px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    word-break: break-all;
+    line-height: 1.6;
+  }
+
+  /* Comment card */
+  .comment-card {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    animation: slideIn 0.2s ease;
+  }
+
+  .comment-card:hover { background: var(--bg); }
+  .comment-card:last-child { border-bottom: none; }
+
+  .comment-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin-bottom: 9px;
+  }
+
+  .comment-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .comment-meta { flex: 1; min-width: 0; }
+
+  .comment-author {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .comment-time {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .comment-resolve-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .comment-resolve-btn svg { width: 13px; height: 13px; }
+
+  .comment-resolve-btn:hover {
+    background: #ecfdf5;
+    border-color: #10b981;
+    color: #10b981;
+  }
+
+  .comment-quote {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 6px 10px 6px 12px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 8px;
+    line-height: 1.5;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .comment-text {
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+
+  /* Panel footer */
+  .panel-footer {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .refresh-btn {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+
+  .refresh-btn svg { width: 13px; height: 13px; transition: transform 0.3s; }
+  .refresh-btn:hover { background: var(--bg); color: var(--text-primary); }
+  .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
+
+  /* ── Selection bubble (floats over highlighted text) ── */
+  .sel-bubble {
+    position: fixed;
+    z-index: 300;
+    transform: translateX(-50%) translateY(calc(-100% - 10px));
+    display: none;
+    pointer-events: auto;
+  }
+
+  .sel-bubble.show { display: block; }
+
+  .sel-bubble button {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    background: #1a1d23;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    transition: background 0.15s;
+  }
+
+  .sel-bubble button:hover { background: var(--accent); }
+  .sel-bubble button svg  { width: 13px; height: 13px; }
+
+  /* Bubble tail */
+  .sel-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-bottom: none;
+    border-top-color: #1a1d23;
+  }
+
+  /* ── Comment modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .modal-overlay.hidden { display: none; }
+
+  .modal-box {
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 420px;
+    overflow: hidden;
+    animation: slideUp 0.2s ease;
+  }
+
+  .modal-hd {
+    padding: 18px 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title { font-size: 15px; font-weight: 600; }
+
+  .modal-x {
+    width: 28px; height: 28px;
+    border: none; background: transparent;
+    color: var(--text-muted); cursor: pointer;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .modal-x:hover { background: var(--bg); color: var(--text-primary); }
+  .modal-x svg { width: 16px; height: 16px; }
+
+  .modal-body {
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .modal-quote {
+    background: var(--bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-style: italic;
+    line-height: 1.5;
+    max-height: 72px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+
+  .modal-quote.general { font-style: normal; color: var(--text-muted); }
+
+  .modal-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+  }
+
+  .modal-field input,
+  .modal-field textarea {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    resize: none;
+  }
+
+  .modal-field input:focus,
+  .modal-field textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+
+  .modal-field textarea { min-height: 82px; line-height: 1.5; }
+
+  .modal-err {
+    font-size: 12px;
+    color: #ef4444;
+    margin-top: -6px;
+    display: none;
+  }
+
+  .modal-err.show { display: block; }
+
+  .modal-ft {
+    padding: 0 20px 18px;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .btn-cancel {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    padding: 8px 16px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: transparent; color: var(--text-secondary);
+    cursor: pointer; transition: all 0.15s;
+  }
+
+  .btn-cancel:hover { background: var(--bg); color: var(--text-primary); }
+
+  .btn-submit {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600;
+    padding: 8px 20px;
+    border: none; border-radius: 8px;
+    background: var(--accent); color: #fff;
+    cursor: pointer; transition: background 0.15s;
+  }
+
+  .btn-submit:hover { background: var(--accent-hover); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Save indicator (toast) ── */
+  .save-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1d23;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 20px;
+    z-index: 500;
+    display: none;
+    align-items: center;
+    gap: 7px;
+    box-shadow: var(--shadow-md);
+    white-space: nowrap;
+  }
+
+  .save-toast.show { display: flex; }
+
+  .save-toast .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  .save-toast.saved .dot { animation: none; background: #34d399; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
-<!-- Toolbar -->
+<!-- ── Toolbar ── -->
 <div class="toolbar" id="toolbar" style="display:none;">
   <div class="toolbar-left">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);flex-shrink:0"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
     <div class="campaign-name" id="campaignName"></div>
   </div>
   <div class="toolbar-controls">
@@ -360,6 +972,12 @@
         <span class="label-text">Mobile</span>
       </button>
     </div>
+    <!-- Comments button (hidden until comments config present) -->
+    <button class="btn-comments" id="commentsBtn" title="Comments" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="label-text">Comments</span>
+      <span class="comment-badge" id="commentBadge">0</span>
+    </button>
     <!-- Download PDF -->
     <button class="btn-download" id="downloadBtn" title="Download as PDF">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -368,7 +986,7 @@
   </div>
 </div>
 
-<!-- Meta strip -->
+<!-- ── Meta strip ── -->
 <div class="meta-strip" id="metaStrip" style="display:none;">
   <div class="meta-item">
     <span class="meta-label">Subject</span>
@@ -381,18 +999,13 @@
   </div>
 </div>
 
-<!-- Preview area -->
+<!-- ── Preview area ── -->
 <div class="preview-area" id="previewArea">
-  <!-- Loading state shown initially -->
   <div class="state-message" id="loadingState">
     <div class="spinner"></div>
     <p>Loading preview…</p>
   </div>
-
-  <!-- Error state (hidden) -->
   <div class="state-message" id="errorState" style="display:none;"></div>
-
-  <!-- Preview frame (hidden until loaded) -->
   <div class="preview-frame-wrapper desktop" id="previewWrapper" style="display:none;">
     <div class="preview-chrome">
       <div class="mobile-chrome-bar">
@@ -404,168 +1017,316 @@
   </div>
 </div>
 
+<!-- ── Comment panel (fixed right sidebar) ── -->
+<aside class="comment-panel" id="commentPanel">
+
+  <div class="panel-header">
+    <div class="panel-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Comments
+      <span class="panel-count" id="panelCount">0</span>
+    </div>
+    <button class="panel-close" id="panelClose" title="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="reviewer-bar">
+    <span class="reviewer-label">Reviewing as</span>
+    <span class="reviewer-name-val empty" id="reviewerNameVal">Not set</span>
+    <button class="reviewer-edit-btn" id="reviewerEditBtn">Edit</button>
+  </div>
+
+  <button class="annotate-btn" id="annotateBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    Annotate email
+  </button>
+
+  <div class="panel-body" id="panelBody"></div>
+
+  <div class="panel-footer">
+    <button class="refresh-btn" id="refreshBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Refresh comments
+    </button>
+  </div>
+
+</aside>
+
+<!-- ── Selection bubble ── -->
+<div class="sel-bubble" id="selBubble">
+  <button id="bubbleBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Comment on this
+  </button>
+</div>
+
+<!-- ── Comment modal ── -->
+<div class="modal-overlay hidden" id="commentModal" role="dialog" aria-modal="true" aria-label="Add comment">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <span class="modal-title">Add Comment</span>
+      <button class="modal-x" id="modalX" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-quote" id="modalQuote"></div>
+      <div class="modal-field" id="nameField">
+        <label for="modalName">Your name</label>
+        <input type="text" id="modalName" placeholder="e.g. Lisa McCaw" maxlength="60" autocomplete="name">
+      </div>
+      <div class="modal-field">
+        <label for="modalText">Feedback</label>
+        <textarea id="modalText" placeholder="Describe your feedback for this section…" maxlength="600"></textarea>
+      </div>
+      <span class="modal-err" id="modalErr"></span>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" id="modalCancel">Cancel</button>
+      <button class="btn-submit" id="modalSubmit">Add Comment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Save toast ── -->
+<div class="save-toast" id="saveToast">
+  <span class="dot"></span>
+  <span id="toastMsg">Saving…</span>
+</div>
+
 <script>
-(function() {
-  // ── State ──
-  let config = null;
-  let currentLang = 'en';
-  let currentView = 'desktop';
+(function () {
 
-  // ── Elements ──
-  const toolbar       = document.getElementById('toolbar');
-  const metaStrip     = document.getElementById('metaStrip');
-  const campaignName  = document.getElementById('campaignName');
-  const subjectLine   = document.getElementById('subjectLine');
-  const preheaderText = document.getElementById('preheaderText');
-  const previewArea   = document.getElementById('previewArea');
-  const loadingState  = document.getElementById('loadingState');
-  const errorState    = document.getElementById('errorState');
-  const previewWrapper= document.getElementById('previewWrapper');
-  const previewIframe = document.getElementById('previewIframe');
-  const dimensionBadge= document.getElementById('dimensionBadge');
-  const langToggle    = document.getElementById('langToggle');
-  const viewToggle    = document.getElementById('viewToggle');
-  const downloadBtn   = document.getElementById('downloadBtn');
+  // ─────────────────────────────────────
+  // CONFIG & CONSTANTS
+  // ─────────────────────────────────────
+  const JSONBIN    = 'https://api.jsonbin.io/v3';
+  const COLORS     = ['#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444'];
+  const LS_NAME    = 'email-viewer-reviewer-name';
 
-  // ── Read campaign from URL ──
-  const params = new URLSearchParams(window.location.search);
+  // ─────────────────────────────────────
+  // STATE
+  // ─────────────────────────────────────
+  let config          = null;
+  let currentLang     = 'en';
+  let currentView     = 'desktop';
+  let comments        = { en: [], fr: [] };
+  let binId           = null;
+  let apiKey          = null;
+  let commentsReady   = false;
+  let annotateMode    = false;
+  let pendingText     = '';
+  let pendingOcc      = 0;
+  let reviewerName    = localStorage.getItem(LS_NAME) || '';
+
+  // ─────────────────────────────────────
+  // ELEMENT REFERENCES
+  // ─────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const toolbar        = $('toolbar');
+  const metaStrip      = $('metaStrip');
+  const campaignName   = $('campaignName');
+  const subjectLine    = $('subjectLine');
+  const preheaderText  = $('preheaderText');
+  const loadingState   = $('loadingState');
+  const errorState     = $('errorState');
+  const previewWrapper = $('previewWrapper');
+  const previewIframe  = $('previewIframe');
+  const dimensionBadge = $('dimensionBadge');
+  const langToggle     = $('langToggle');
+  const viewToggle     = $('viewToggle');
+  const downloadBtn    = $('downloadBtn');
+  const commentsBtn    = $('commentsBtn');
+  const commentBadge   = $('commentBadge');
+  const commentPanel   = $('commentPanel');
+  const panelClose     = $('panelClose');
+  const panelBody      = $('panelBody');
+  const panelCount     = $('panelCount');
+  const annotateBtn    = $('annotateBtn');
+  const reviewerNameVal= $('reviewerNameVal');
+  const reviewerEditBtn= $('reviewerEditBtn');
+  const refreshBtn     = $('refreshBtn');
+  const selBubble      = $('selBubble');
+  const bubbleBtn      = $('bubbleBtn');
+  const commentModal   = $('commentModal');
+  const modalX         = $('modalX');
+  const modalCancel    = $('modalCancel');
+  const modalSubmit    = $('modalSubmit');
+  const modalName      = $('modalName');
+  const modalText      = $('modalText');
+  const modalQuote     = $('modalQuote');
+  const modalErr       = $('modalErr');
+  const nameField      = $('nameField');
+  const saveToast      = $('saveToast');
+  const toastMsg       = $('toastMsg');
+
+  // ─────────────────────────────────────
+  // BOOTSTRAP
+  // ─────────────────────────────────────
+  const params       = new URLSearchParams(window.location.search);
   const campaignSlug = params.get('campaign');
 
   if (!campaignSlug) {
-    showError(
-      'No campaign specified',
-      'Add a <strong>?campaign=</strong> parameter to the URL pointing to your campaign folder.',
-      `Example:\n${window.location.origin}${window.location.pathname}?campaign=privacy-week`
-    );
+    showError('No campaign specified',
+      'Add a <strong>?campaign=</strong> parameter to the URL.',
+      `Example:\n${location.origin}${location.pathname}?campaign=privacy-week`);
     return;
   }
 
-  // ── Load config ──
   const basePath = `emails/${campaignSlug}`;
 
   fetch(`${basePath}/config.json`)
-    .then(r => {
-      if (!r.ok) throw new Error(`Could not find config at ${basePath}/config.json`);
-      return r.json();
-    })
+    .then(r => { if (!r.ok) throw new Error(); return r.json(); })
     .then(data => {
       config = data;
       document.title = `${config.name || campaignSlug} — Email Preview`;
+      if (config.comments && config.comments.apiKey) {
+        apiKey = config.comments.apiKey;
+        binId  = config.comments.binId || null;
+        commentsReady = true;
+      }
       init();
     })
-    .catch(err => {
-      showError(
-        'Campaign not found',
-        `Could not load <strong>${basePath}/config.json</strong>. Make sure the campaign folder exists with a valid config file.`,
-        `Expected structure:\nemails/\n  ${campaignSlug}/\n    config.json\n    en.html\n    fr.html`
-      );
+    .catch(() => {
+      showError('Campaign not found',
+        `Could not load <strong>${basePath}/config.json</strong>. Make sure the campaign folder exists.`,
+        `emails/\n  ${campaignSlug}/\n    config.json\n    en.html\n    fr.html`);
     });
 
+  // ─────────────────────────────────────
+  // INIT
+  // ─────────────────────────────────────
   function init() {
-    // Show UI
-    toolbar.style.display = 'flex';
+    toolbar.style.display   = 'flex';
     metaStrip.style.display = 'flex';
     campaignName.textContent = config.name || campaignSlug;
 
-    // Check which languages are available
     const langs = [];
     if (config.en) langs.push('en');
     if (config.fr) langs.push('fr');
-
-    // Hide lang toggle if only one language
-    if (langs.length <= 1) {
-      langToggle.style.display = 'none';
-    }
-
-    // Default to first available language
+    if (langs.length <= 1) langToggle.style.display = 'none';
     currentLang = langs[0] || 'en';
-    updateToggleUI();
+
+    updateToggles();
     loadEmail();
 
-    // ── Event listeners ──
-    langToggle.addEventListener('click', (e) => {
+    if (commentsReady) {
+      commentsBtn.style.display = 'flex';
+      updateReviewerDisplay();
+      initComments();
+    }
+
+    // ── Toolbar listeners ──
+    langToggle.addEventListener('click', e => {
       const btn = e.target.closest('button[data-lang]');
       if (!btn || btn.classList.contains('active')) return;
       currentLang = btn.dataset.lang;
-      updateToggleUI();
+      updateToggles();
       loadEmail();
     });
 
-    viewToggle.addEventListener('click', (e) => {
+    viewToggle.addEventListener('click', e => {
       const btn = e.target.closest('button[data-view]');
       if (!btn || btn.classList.contains('active')) return;
       currentView = btn.dataset.view;
-      updateToggleUI();
+      updateToggles();
       updateViewport();
     });
 
     downloadBtn.addEventListener('click', downloadPDF);
+    commentsBtn.addEventListener('click', () => togglePanel());
+    panelClose.addEventListener('click',  () => togglePanel(false));
+
+    // ── Panel listeners ──
+    annotateBtn.addEventListener('click',    toggleAnnotate);
+    reviewerEditBtn.addEventListener('click', promptReviewerName);
+    refreshBtn.addEventListener('click',     handleRefresh);
+
+    // ── Bubble & modal listeners ──
+    bubbleBtn.addEventListener('click', () => { hideSelBubble(); openModal(); });
+    modalX.addEventListener('click',      closeModal);
+    modalCancel.addEventListener('click', closeModal);
+    modalSubmit.addEventListener('click', handleSubmit);
+
+    commentModal.addEventListener('click', e => {
+      if (e.target === commentModal) closeModal();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeModal(); hideSelBubble(); }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !commentModal.classList.contains('hidden')) {
+        handleSubmit();
+      }
+    });
+
+    // Tab between modal fields
+    modalName.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); modalText.focus(); }
+    });
+
+    // Dismiss bubble when clicking outside
+    document.addEventListener('mousedown', e => {
+      if (!selBubble.contains(e.target)) hideSelBubble();
+    });
   }
 
-  function updateToggleUI() {
-    langToggle.querySelectorAll('button').forEach(b => {
-      b.classList.toggle('active', b.dataset.lang === currentLang);
-    });
-    viewToggle.querySelectorAll('button').forEach(b => {
-      b.classList.toggle('active', b.dataset.view === currentView);
-    });
+  // ─────────────────────────────────────
+  // EMAIL LOADING
+  // ─────────────────────────────────────
+  function updateToggles() {
+    langToggle.querySelectorAll('button').forEach(b =>
+      b.classList.toggle('active', b.dataset.lang === currentLang));
+    viewToggle.querySelectorAll('button').forEach(b =>
+      b.classList.toggle('active', b.dataset.view === currentView));
   }
 
   function loadEmail() {
     const langData = config[currentLang];
     if (!langData) {
-      showError('Language not available', `No <strong>${currentLang.toUpperCase()}</strong> version configured for this campaign.`);
+      showError('Language not available', `No <strong>${currentLang.toUpperCase()}</strong> version configured.`);
       return;
     }
 
-    // Update meta
-    subjectLine.textContent = langData.subject || '(no subject)';
-    preheaderText.textContent = langData.preheader || '(no pre-header)';
+    subjectLine.textContent  = langData.subject   || '(no subject)';
+    preheaderText.textContent= langData.preheader  || '(no pre-header)';
 
-    // Resolve the email file path
     const filePath = langData.file || `${currentLang}.html`;
     const fullPath = filePath.startsWith('http') ? filePath : `${basePath}/${filePath}`;
 
-    // Show loading
-    loadingState.style.display = 'flex';
-    errorState.style.display = 'none';
+    loadingState.style.display   = 'flex';
+    errorState.style.display     = 'none';
     previewWrapper.style.display = 'none';
 
     fetch(fullPath)
-      .then(r => {
-        if (!r.ok) throw new Error(`Could not load ${fullPath}`);
-        return r.text();
-      })
+      .then(r => { if (!r.ok) throw new Error(); return r.text(); })
       .then(html => {
-        loadingState.style.display = 'none';
+        loadingState.style.display   = 'none';
         previewWrapper.style.display = 'block';
 
-        // Write HTML into iframe
         const doc = previewIframe.contentDocument || previewIframe.contentWindow.document;
-        doc.open();
-        doc.write(html);
-        doc.close();
-
-        // Auto-resize iframe height after content loads
-        setTimeout(() => resizeIframe(), 200);
-        setTimeout(() => resizeIframe(), 800);
+        doc.open(); doc.write(html); doc.close();
 
         updateViewport();
+        setTimeout(() => {
+          resizeIframe();
+          applyHighlights();
+          attachIframeListeners();
+        }, 250);
+        setTimeout(resizeIframe, 900);
+
+        renderPanel();
       })
-      .catch(err => {
-        showError('Email file not found', `Could not load <strong>${fullPath}</strong>. Check that the file exists in your campaign folder.`);
+      .catch(() => {
+        showError('Email file not found', `Could not load <strong>${fullPath}</strong>.`);
       });
   }
 
   function resizeIframe() {
     try {
       const doc = previewIframe.contentDocument || previewIframe.contentWindow.document;
-      const height = Math.max(
-        doc.body.scrollHeight,
-        doc.documentElement.scrollHeight,
-        600
-      );
-      previewIframe.style.height = height + 'px';
+      const h = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight, 600);
+      previewIframe.style.height = h + 'px';
     } catch(e) {
       previewIframe.style.height = '800px';
     }
@@ -574,75 +1335,560 @@
   function updateViewport() {
     previewWrapper.classList.remove('desktop', 'mobile');
     previewWrapper.classList.add(currentView);
-
-    const width = currentView === 'mobile' ? 375 : 700;
-    dimensionBadge.textContent = `${width}px wide`;
-
-    // Re-measure after transition
-    setTimeout(() => resizeIframe(), 400);
+    dimensionBadge.textContent = (currentView === 'mobile' ? '375' : '700') + 'px wide';
+    setTimeout(resizeIframe, 400);
   }
 
+  // ─────────────────────────────────────
+  // PDF
+  // ─────────────────────────────────────
   function downloadPDF() {
     try {
-      const doc = previewIframe.contentDocument || previewIframe.contentWindow.document;
-      const content = doc.body;
-      if (!content) return;
-
-      // Disable button during generation
+      const doc  = previewIframe.contentDocument || previewIframe.contentWindow.document;
+      if (!doc.body) return;
       downloadBtn.disabled = true;
-      const origLabel = downloadBtn.querySelector('.label-text');
-      const origText = origLabel ? origLabel.textContent : '';
-      if (origLabel) origLabel.textContent = 'Generating…';
-
-      // Build a filename from campaign name + language
-      const name = (config.name || campaignSlug).replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
-      const filename = `${name}-${currentLang}.pdf`;
-
-      // Configure PDF options based on current viewport
-      const pdfWidth = currentView === 'mobile' ? 375 : 700;
-      const marginTop = 8;
-      const marginBottom = 8;
-
-      // Measure actual content height so the PDF is one continuous page
-      const contentHeight = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight, 600);
-      const pageHeight = contentHeight + marginTop + marginBottom;
-
-      const opt = {
-        margin:       [marginTop, 0, marginBottom, 0],
-        filename:     filename,
-        image:        { type: 'jpeg', quality: 0.95 },
-        html2canvas:  { scale: 2, width: pdfWidth, height: contentHeight, scrollY: 0, useCORS: true, windowHeight: contentHeight },
-        jsPDF:        { unit: 'px', format: [pdfWidth, pageHeight], hotfixes: ['px_scaling'] }
-      };
-
-      html2pdf().set(opt).from(content).save().then(() => {
+      const lbl = downloadBtn.querySelector('.label-text');
+      if (lbl) lbl.textContent = 'Generating…';
+      const slug = (config.name || campaignSlug).replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
+      const pw   = currentView === 'mobile' ? 375 : 700;
+      html2pdf().set({
+        margin:      [8, 0, 8, 0],
+        filename:    `${slug}-${currentLang}.pdf`,
+        image:       { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2, width: pw, scrollY: 0, useCORS: true },
+        jsPDF:       { unit: 'px', format: [pw, pw * 1.414], hotfixes: ['px_scaling'] }
+      }).from(doc.body).save().finally(() => {
         downloadBtn.disabled = false;
-        if (origLabel) origLabel.textContent = origText;
-      }).catch(() => {
-        downloadBtn.disabled = false;
-        if (origLabel) origLabel.textContent = origText;
+        if (lbl) lbl.textContent = 'PDF';
       });
-
     } catch(e) {
       downloadBtn.disabled = false;
-      alert('Could not generate PDF. The email content may not be accessible.');
+      alert('Could not generate PDF.');
     }
   }
 
-  function showError(title, message, codeBlock) {
-    loadingState.style.display = 'none';
+  // ─────────────────────────────────────
+  // JSONBIN – BACKEND
+  // ─────────────────────────────────────
+  function initComments() {
+    if (!binId) {
+      autoCreateBin();
+    } else {
+      fetchComments();
+    }
+  }
+
+  async function autoCreateBin() {
+    showToast('Creating comment store…', false);
+    try {
+      const res = await fetch(`${JSONBIN}/b`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': apiKey,
+          'X-Bin-Name':   `email-comments-${campaignSlug}`,
+          'X-Bin-Private':'false'
+        },
+        body: JSON.stringify({ en: [], fr: [] })
+      });
+      if (!res.ok) throw new Error('Create failed');
+      const data = await res.json();
+      binId    = data.metadata.id;
+      comments = { en: [], fr: [] };
+      hideToast();
+      renderPanel(true); // show setup notice with the new bin ID
+    } catch(e) {
+      hideToast();
+      console.error(e);
+      renderPanel(false, true);
+    }
+  }
+
+  async function fetchComments() {
+    if (!binId || !apiKey) return;
+    try {
+      const res = await fetch(`${JSONBIN}/b/${binId}/latest`, {
+        headers: { 'X-Master-Key': apiKey }
+      });
+      if (!res.ok) throw new Error('Fetch failed');
+      const data = await res.json();
+      comments = data.record || { en: [], fr: [] };
+      if (!comments.en) comments.en = [];
+      if (!comments.fr) comments.fr = [];
+      applyHighlights();
+      renderPanel();
+      updateBadge();
+    } catch(e) {
+      console.error('Comments fetch error:', e);
+    }
+  }
+
+  async function saveComments() {
+    if (!binId || !apiKey) return;
+    showToast('Saving…', false);
+    try {
+      const res = await fetch(`${JSONBIN}/b/${binId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': apiKey
+        },
+        body: JSON.stringify(comments)
+      });
+      if (!res.ok) throw new Error('Save failed');
+      showToast('Saved', true);
+      setTimeout(hideToast, 1800);
+    } catch(e) {
+      hideToast();
+      console.error('Save error:', e);
+      alert('Could not save comment. Please check your JSONBin API key and connection.');
+    }
+  }
+
+  // ─────────────────────────────────────
+  // COMMENTS – CRUD
+  // ─────────────────────────────────────
+  function addComment(selectedText, occIndex, commentText, author) {
+    const existing = (comments[currentLang] || []).length;
+    const color    = COLORS[existing % COLORS.length];
+    const comment  = {
+      id:           rand(),
+      author:       author.trim(),
+      initials:     initials(author),
+      color,
+      selectedText: selectedText.trim(),
+      occIndex,
+      text:         commentText.trim(),
+      timestamp:    new Date().toISOString(),
+      lang:         currentLang
+    };
+    if (!comments[currentLang]) comments[currentLang] = [];
+    comments[currentLang].push(comment);
+    saveComments();
+    applyHighlights();
+    renderPanel();
+    updateBadge();
+  }
+
+  function resolveComment(id) {
+    comments[currentLang] = (comments[currentLang] || []).filter(c => c.id !== id);
+    saveComments();
+    applyHighlights();
+    renderPanel();
+    updateBadge();
+  }
+
+  // ─────────────────────────────────────
+  // HIGHLIGHTS (injected into iframe DOM)
+  // ─────────────────────────────────────
+  function applyHighlights() {
+    if (!commentsReady) return;
+    try {
+      const doc = previewIframe.contentDocument;
+      if (!doc || !doc.body) return;
+
+      // Remove existing highlight spans (restore text nodes)
+      doc.querySelectorAll('.evcm').forEach(el => {
+        const p = el.parentNode;
+        while (el.firstChild) p.insertBefore(el.firstChild, el);
+        p.removeChild(el);
+      });
+
+      // Inject highlight base styles once
+      if (!doc.getElementById('evcm-css')) {
+        const s = doc.createElement('style');
+        s.id = 'evcm-css';
+        s.textContent = '.evcm { border-radius: 2px; cursor: pointer; } .evcm:hover { opacity: 0.75; }';
+        (doc.head || doc.body).appendChild(s);
+      }
+
+      (comments[currentLang] || []).forEach(c => {
+        if (!c.selectedText) return;
+        injectHighlight(doc, c.selectedText, c.color, c.id, c.occIndex || 0);
+      });
+    } catch(e) {
+      console.warn('Highlight error:', e);
+    }
+  }
+
+  function injectHighlight(doc, search, color, id, targetOcc) {
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const tag = node.parentElement && node.parentElement.tagName;
+        if (['SCRIPT','STYLE','NOSCRIPT','HEAD'].includes(tag)) return NodeFilter.FILTER_REJECT;
+        if (node.parentElement && node.parentElement.classList.contains('evcm')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    const lo = search.toLowerCase();
+    let occ  = 0;
+    let node;
+
+    while ((node = walker.nextNode())) {
+      const text = node.textContent;
+      const tlo  = text.toLowerCase();
+      let   start = 0, idx;
+
+      while ((idx = tlo.indexOf(lo, start)) !== -1) {
+        if (occ === targetOcc) {
+          try {
+            const range = doc.createRange();
+            range.setStart(node, idx);
+            range.setEnd(node, idx + search.length);
+            const mark = doc.createElement('span');
+            mark.className = 'evcm';
+            mark.dataset.cid = id;
+            mark.style.cssText = `background:${color}28;border-bottom:2px solid ${color};`;
+            range.surroundContents(mark);
+            mark.addEventListener('click', () => pulseCard(id));
+            return true;
+          } catch(e) {
+            return false; // selection spans element boundary – skip
+          }
+        }
+        occ++;
+        start = idx + 1;
+      }
+    }
+    return false;
+  }
+
+  // ─────────────────────────────────────
+  // PANEL UI
+  // ─────────────────────────────────────
+  function renderPanel(showSetup = false, showError = false) {
+    const list  = (comments[currentLang] || []);
+    const count = list.length;
+    panelCount.textContent = count;
+    panelBody.innerHTML = '';
+
+    if (showError) {
+      panelBody.innerHTML = `<div class="panel-notice error">
+        <strong>⚠ Could not connect to comment store</strong>
+        Check that your <code>apiKey</code> in config.json is valid.
+      </div>`;
+      return;
+    }
+
+    if (showSetup) {
+      panelBody.innerHTML = `<div class="panel-notice setup">
+        <strong>📋 Comment store created — one step needed</strong>
+        Add this Bin ID to your <code>config.json</code> to make comments permanent across reloads:
+        <code class="bin-id-box">"comments": {
+  "apiKey": "…your key…",
+  "binId": "${esc(binId)}"
+}</code>
+        Comments are live now. Your colleagues can start reviewing immediately.
+      </div>`;
+      return;
+    }
+
+    if (count === 0) {
+      panelBody.innerHTML = `<div class="comments-empty">
+        <span class="ei">💬</span>
+        No ${currentLang.toUpperCase()} comments yet.<br>
+        Use <strong>Annotate email</strong> to highlight<br>text and add feedback.
+      </div>`;
+      return;
+    }
+
+    list.forEach(c => {
+      const card = document.createElement('div');
+      card.className   = 'comment-card';
+      card.dataset.cid = c.id;
+
+      const quoteHtml = c.selectedText
+        ? `<div class="comment-quote" style="background:${c.color}14;border-left:3px solid ${c.color}">${esc(c.selectedText)}</div>`
+        : '';
+
+      card.innerHTML = `
+        <div class="comment-card-top">
+          <div class="comment-avatar" style="background:${c.color}">${esc(c.initials)}</div>
+          <div class="comment-meta">
+            <span class="comment-author">${esc(c.author)}</span>
+            <span class="comment-time">${timeAgo(c.timestamp)}</span>
+          </div>
+          <button class="comment-resolve-btn" data-cid="${c.id}" title="Resolve comment">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+        </div>
+        ${quoteHtml}
+        <div class="comment-text">${esc(c.text)}</div>`;
+
+      // Resolve button
+      card.querySelector('.comment-resolve-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        if (confirm(`Resolve this comment from ${c.author}?`)) resolveComment(c.id);
+      });
+
+      // Click card → scroll to highlight in email
+      if (c.selectedText) {
+        card.addEventListener('click', () => scrollToMark(c.id));
+      }
+
+      panelBody.appendChild(card);
+    });
+  }
+
+  function pulseCard(id) {
+    if (!commentPanel.classList.contains('open')) togglePanel(true);
+    const card = panelBody.querySelector(`[data-cid="${id}"]`);
+    if (!card) return;
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    card.style.transition = 'background 0.1s';
+    card.style.background = 'var(--accent-light)';
+    setTimeout(() => { card.style.background = ''; }, 900);
+  }
+
+  function scrollToMark(id) {
+    try {
+      const doc  = previewIframe.contentDocument;
+      const mark = doc.querySelector(`.evcm[data-cid="${id}"]`);
+      if (!mark) return;
+      const mRect = mark.getBoundingClientRect();
+      const iRect = previewIframe.getBoundingClientRect();
+      window.scrollTo({ top: window.scrollY + iRect.top + mRect.top - 130, behavior: 'smooth' });
+      // Brief flash
+      const orig = mark.style.background;
+      mark.style.transition = 'background 0.15s';
+      mark.style.background = mark.style.borderBottomColor + '55';
+      setTimeout(() => { mark.style.background = orig; }, 700);
+    } catch(e) {}
+  }
+
+  function updateBadge() {
+    const n = (comments[currentLang] || []).length;
+    commentBadge.textContent = n;
+    commentBadge.classList.toggle('show', n > 0);
+  }
+
+  // ─────────────────────────────────────
+  // PANEL TOGGLE
+  // ─────────────────────────────────────
+  function togglePanel(force) {
+    const open = force !== undefined ? force : !commentPanel.classList.contains('open');
+    commentPanel.classList.toggle('open', open);
+    document.body.classList.toggle('panel-open', open);
+    commentsBtn.classList.toggle('panel-open', open);
+    if (!open) setAnnotate(false);
+  }
+
+  // ─────────────────────────────────────
+  // ANNOTATE MODE
+  // ─────────────────────────────────────
+  function toggleAnnotate() { setAnnotate(!annotateMode); }
+
+  function setAnnotate(on) {
+    annotateMode = on;
+    annotateBtn.classList.toggle('active', on);
+    document.body.classList.toggle('annotate-mode', on);
+    if (!on) hideSelBubble();
+  }
+
+  function attachIframeListeners() {
+    try {
+      const iDoc = previewIframe.contentDocument;
+      const iWin = previewIframe.contentWindow;
+      if (!iDoc || !iWin) return;
+
+      // Remove old listener if present (replace with clone)
+      iDoc.removeEventListener('mouseup', onIframeMouseUp);
+      iDoc.addEventListener('mouseup', onIframeMouseUp);
+    } catch(e) {
+      console.warn('Could not attach iframe listeners:', e);
+    }
+  }
+
+  function onIframeMouseUp() {
+    if (!annotateMode) return;
+
+    const iWin = previewIframe.contentWindow;
+    const sel  = iWin && iWin.getSelection();
+    const text = sel ? sel.toString().trim() : '';
+
+    if (!text || text.length < 2) {
+      hideSelBubble();
+      return;
+    }
+
+    // Calculate occurrence index of this selection
+    let occ = 0;
+    try {
+      const range    = sel.getRangeAt(0);
+      const iDoc     = previewIframe.contentDocument;
+      const preRange = iDoc.createRange();
+      preRange.setStart(iDoc.body, 0);
+      preRange.setEnd(range.startContainer, range.startOffset);
+      const preTxt = preRange.toString().toLowerCase();
+      const lo     = text.toLowerCase();
+      let   idx    = 0;
+      while ((idx = preTxt.indexOf(lo, idx)) !== -1) { occ++; idx++; }
+    } catch(e) {}
+
+    pendingText = text;
+    pendingOcc  = occ;
+
+    // Position bubble above the selection
+    try {
+      const range  = sel.getRangeAt(0);
+      const sRect  = range.getBoundingClientRect();
+      const iRect  = previewIframe.getBoundingClientRect();
+      const bx     = iRect.left + sRect.left + sRect.width / 2;
+      const by     = iRect.top  + sRect.top;
+      selBubble.style.left = bx + 'px';
+      selBubble.style.top  = Math.max(60, by) + 'px';
+    } catch(e) {
+      selBubble.style.left = '50%';
+      selBubble.style.top  = '100px';
+    }
+
+    selBubble.classList.add('show');
+  }
+
+  function hideSelBubble() { selBubble.classList.remove('show'); }
+
+  // ─────────────────────────────────────
+  // COMMENT MODAL
+  // ─────────────────────────────────────
+  function openModal() {
+    // Selection preview
+    if (pendingText) {
+      modalQuote.textContent = `"${pendingText}"`;
+      modalQuote.classList.remove('general');
+    } else {
+      modalQuote.textContent = 'General comment (no text selected)';
+      modalQuote.classList.add('general');
+    }
+
+    // Name field visibility
+    if (reviewerName) {
+      nameField.style.display = 'none';
+      modalName.value = reviewerName;
+    } else {
+      nameField.style.display = 'block';
+      modalName.value = '';
+    }
+
+    modalText.value = '';
+    modalErr.classList.remove('show');
+    commentModal.classList.remove('hidden');
+
+    setTimeout(() => { (reviewerName ? modalText : modalName).focus(); }, 60);
+  }
+
+  function closeModal() {
+    commentModal.classList.add('hidden');
+    pendingText = '';
+    pendingOcc  = 0;
+  }
+
+  function handleSubmit() {
+    const name = (reviewerName || modalName.value).trim();
+    const text = modalText.value.trim();
+
+    if (!name) {
+      modalErr.textContent = 'Please enter your name.';
+      modalErr.classList.add('show');
+      modalName.focus();
+      return;
+    }
+    if (!text) {
+      modalErr.textContent = 'Please enter your feedback.';
+      modalErr.classList.add('show');
+      modalText.focus();
+      return;
+    }
+
+    if (!reviewerName) setReviewerName(name);
+
+    addComment(pendingText, pendingOcc, text, name);
+    closeModal();
+    if (!commentPanel.classList.contains('open')) togglePanel(true);
+  }
+
+  // ─────────────────────────────────────
+  // REVIEWER NAME
+  // ─────────────────────────────────────
+  function promptReviewerName() {
+    const n = prompt('Enter your name (saved in your browser):', reviewerName);
+    if (n !== null) setReviewerName(n.trim());
+  }
+
+  function setReviewerName(name) {
+    reviewerName = name;
+    name
+      ? localStorage.setItem(LS_NAME, name)
+      : localStorage.removeItem(LS_NAME);
+    updateReviewerDisplay();
+  }
+
+  function updateReviewerDisplay() {
+    reviewerNameVal.textContent = reviewerName || 'Not set';
+    reviewerNameVal.classList.toggle('empty', !reviewerName);
+  }
+
+  // ─────────────────────────────────────
+  // REFRESH
+  // ─────────────────────────────────────
+  async function handleRefresh() {
+    refreshBtn.classList.add('spinning');
+    refreshBtn.disabled = true;
+    await fetchComments();
+    refreshBtn.classList.remove('spinning');
+    refreshBtn.disabled = false;
+  }
+
+  // ─────────────────────────────────────
+  // TOAST
+  // ─────────────────────────────────────
+  function showToast(msg, saved) {
+    toastMsg.textContent = msg;
+    saveToast.classList.toggle('saved', !!saved);
+    saveToast.classList.add('show');
+  }
+
+  function hideToast() { saveToast.classList.remove('show'); }
+
+  // ─────────────────────────────────────
+  // UTILITIES
+  // ─────────────────────────────────────
+  function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function initials(name) {
+    return (name || '?').trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  function rand() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function timeAgo(iso) {
+    const d = Date.now() - new Date(iso).getTime();
+    const m = Math.floor(d / 6e4), h = Math.floor(d / 36e5), dy = Math.floor(d / 864e5);
+    if (m < 1)  return 'just now';
+    if (m < 60) return `${m}m ago`;
+    if (h < 24) return `${h}h ago`;
+    return `${dy}d ago`;
+  }
+
+  function showError(title, msg, code) {
+    loadingState.style.display   = 'none';
     previewWrapper.style.display = 'none';
-    toolbar.style.display = 'none';
-    metaStrip.style.display = 'none';
-    errorState.style.display = 'flex';
+    toolbar.style.display        = 'none';
+    metaStrip.style.display      = 'none';
+    errorState.style.display     = 'flex';
     errorState.innerHTML = `
       <h2>${title}</h2>
-      <p>${message}</p>
-      ${codeBlock ? `<code>${codeBlock}</code>` : ''}
-    `;
+      <p>${msg}</p>
+      ${code ? `<code>${code}</code>` : ''}`;
   }
+
 })();
 </script>
-
 </body>
 </html>
