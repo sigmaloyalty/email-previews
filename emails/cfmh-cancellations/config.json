@@ -9,5 +9,9 @@
     "file": "CFMH_cancellation_fr.html",
     "subject": "Votre abonnement à Vigie Domicile 360 a été résilié",
     "preheader": "Nous sommes désolés de vous voir partir."
+  },
+    "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
   }
 }
