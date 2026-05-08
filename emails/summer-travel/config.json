@@ -9,5 +9,9 @@
     "file": "NB_travel_fr.html",
     "subject": "Votre étiquette de bagages trahit votre identité ✈️",
     "preheader": "De nouvelles arnaques ciblent les voyageurs avant, pendant et après leur séjour"
+  },
+  "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
   }
 }
