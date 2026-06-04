@@ -1,0 +1,17 @@
+{
+  "name": "Whatsapp Data Leak",
+  "en": {
+    "file": "whatsapp_breach_securizone.html",
+    "subject": "WhatsApp Data Exposure Alert",
+    "preheader": "What You Need to Know"
+  },
+  "fr": {
+    "file": "nb_canadian_residential_fr.html",
+    "subject": "Alerte fuite de données",
+    "preheader": "Fuite de données des consommateurs résidentiels canadiens"
+  },
+    "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
+  }
+}
