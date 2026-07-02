@@ -1,0 +1,17 @@
+{
+  "name": "Back to School Aug.26",
+  "en": {
+    "file": "NB_BTS_Aug26_en.html",
+    "subject": "The back-to-school handover – and who else is paying attention 📚",
+    "preheader": "More personal information changes hands in August than almost any other month"
+  },
+  "fr": {
+    "file": "NB_BTS_Aug26_fr.html",
+    "subject": "La rentrée scolaire : plus qu’une simple liste de fournitures 📚",
+    "preheader": "Le mois d’août est l’une des périodes de l’année où le plus de renseignements personnels sont échangés"
+  },
+  "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
+  }
+}
