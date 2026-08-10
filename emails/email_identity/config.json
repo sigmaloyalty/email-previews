@@ -1,0 +1,17 @@
+{
+  "name": "Email Is Your Identity Sep.26",
+  "en": {
+    "file": "NB_email_identity_en.html",
+    "subject": "Your Email Is the Master Key to Your Identity 🔑",
+    "preheader": "Why your email deserves a closer look this month"
+  },
+  "fr": {
+    "file": "NB_email_identity_fr.html",
+    "subject": "Votre adresse courriel est la clé maîtresse de votre identité 🔑",
+    "preheader": "Pourquoi votre adresse courriel mérite une attention particulière ce mois-ci"
+  },
+  "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
+  }
+}
