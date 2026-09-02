@@ -1,0 +1,17 @@
+{
+  "name": "CSAM Oct.26",
+  "en": {
+    "file": "NB_csam_en.html",
+    "subject": "Your Best Defence This Month? You 🛡",
+    "preheader": "Four habits that quietly do the heavy lifting"
+  },
+  "fr": {
+    "file": "NB_csam_fr.html",
+    "subject": "Ce mois-ci, votre meilleure défense, c'est vous 🛡",
+    "preheader": "Quatre habitudes qui, discrètement, font le gros du travail"
+  },
+  "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
+  }
+}
