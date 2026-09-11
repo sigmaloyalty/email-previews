@@ -1,0 +1,17 @@
+{
+  "name": "ID Assist Re-Price Sep.26",
+  "en": {
+    "file": "IDA_Price_Increase_Email_Value_EN.html",
+    "subject": "Important changes to your account",
+    "preheader": "Your monthly subscription fee is changing"
+  },
+  "fr": {
+    "file": "IDA_Price_Increase_Email_Value_FR.html",
+    "subject": "Changements importants concernant votre compte",
+    "preheader": "Vos frais d'abonnement mensuels changent"
+  },
+  "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
+  }
+}
