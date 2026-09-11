@@ -1,12 +1,12 @@
 {
   "name": "ID Assist Re-Price Sep.26",
   "en": {
-    "file": "IDA_Price_Increase_Email_en.html",
+    "file": "IDA_Price_Increase_Email_EN.html",
     "subject": "Important changes to your account",
     "preheader": "Your monthly subscription fee is changing"
   },
   "fr": {
-    "file": "IDA_Price_Increase_Email_fr.html",
+    "file": "IDA_Price_Increase_Email_FR.html",
     "subject": "Changements importants concernant votre compte",
     "preheader": "Vos frais d'abonnement mensuels changent"
   },
