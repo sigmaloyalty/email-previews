@@ -1,0 +1,17 @@
+{
+  "name": "FLM Nov.26",
+  "en": {
+    "file": "NB_flm_en.html",
+    "subject": "💬 Let’s Talk Money (Fraud Included)",
+    "preheader": "Silence helps fraudsters. Talking helps you."
+  },
+  "fr": {
+    "file": "NB_flm_fr.html",
+    "subject": "💬 Parlons d’argent (fraude comprise)",
+    "preheader": "Le silence aide les fraudeurs. En parler vous aide."
+  },
+  "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
+  }
+}
