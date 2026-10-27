@@ -1,0 +1,17 @@
+{
+  "name": "Holidays Dec.26",
+  "en": {
+    "file": "NB_holiday_en.html",
+    "subject": "Some holiday stores melt like snowmen ⛄",
+    "preheader": "Spot the fakes before you check out"
+  },
+  "fr": {
+    "file": "NB_holiday_fr.html",
+    "subject": "Certains magasins des Fêtes disparaissent comme neige au soleil. ⛄",
+    "preheader": "Sachez reconnaître le faux avant de payer"
+  },
+  "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
+  }
+}
