@@ -1,0 +1,17 @@
+{
+  "name": "Canadian Residential Data Breach",
+  "en": {
+    "file": "nb_hydro_quebec_breach.html",
+    "subject": "Security Alert",
+    "preheader": "Hydro-Québec Accounts"
+  },
+  "fr": {
+    "file": "nb_hydro_quebec_breach_fr.html",
+    "subject": "Alerte de sécurité",
+    "preheader": "comptes Hydro-Québec"
+  },
+    "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
+  }
+}
