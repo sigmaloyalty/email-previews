@@ -1,0 +1,17 @@
+{
+  "name": "Data Privacy Week Jan.27",
+  "en": {
+    "file": "NB_privacy_en.html",
+    "subject": "Careful what you tell your AI assistant 🤖",
+    "preheader": "What to keep out of your AI chats"
+  },
+  "fr": {
+    "file": "NB_privacy_fr.html",
+    "subject": "Attention à ce que vous confiez à votre assistant IA 🤖",
+    "preheader": "À garder hors de vos échanges avec l’IA"
+  },
+  "comments": {
+    "apiKey": "$2a$10$2k6fudg6m0ON1jhLTNK/WuYVXanuwGPhq2NDwAtDOOWvW5Zzq0j9C",
+    "binId": ""
+  }
+}
